@@ -1,0 +1,11 @@
+{
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "editor.detectIndentation": false,
+  "[css]": { "editor.tabSize": 2 },
+  "[jsonc]": { "editor.tabSize": 2 },
+  "[html]": { "editor.tabSize": 2 },
+  "[javascript]": { "editor.tabSize": 2 },
+  "[typescript]": { "editor.tabSize": 2 },
+  "[typescriptreact]": { "editor.tabSize": 2 },
+  "[javascriptreact]": { "editor.tabSize": 2 }
+}
