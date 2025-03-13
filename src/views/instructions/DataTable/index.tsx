@@ -1,162 +1,128 @@
-"use client";
+import React from "react";
+import "./temp.css";
 
 import {
-  ColumnDef,
-  Row,
-  SortDirection,
-  SortingState,
-  flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
+  ColumnResizeMode,
+  getCoreRowModel,
+  ColumnDef,
+  flexRender,
+  ColumnResizeDirection,
 } from "@tanstack/react-table";
+import { useVirtualizer } from "@tanstack/react-virtual";
 
-import { TableCell, TableHead, TableRow } from "@/shadcn/ui/table";
-import { HTMLAttributes, forwardRef, useState } from "react";
-import { TableVirtuoso } from "react-virtuoso";
-import { cn } from "@/shadcn/utils";
-
-// Do not use the Table from shadcn, it does not work with react-virtuoso out of the box
-const TableComponent = forwardRef<HTMLTableElement, React.HTMLAttributes<HTMLTableElement>>(
-  ({ className, ...props }, ref) => (
-    <table
-      ref={ref}
-      className={cn("w-full caption-bottom text-sm", className)}
-      // style={{ tableLayout: "fixed" }}
-      {...props}
-    />
-  )
-);
-
-const TableRowComponent =
-  <TData,>(rows: Row<TData>[]) =>
-  (props: HTMLAttributes<HTMLTableRowElement>) => {
-    // @ts-expect-error data-index is a valid attribute
-    const index = props["data-index"];
-    const row = rows[index];
-
-    if (!row) return null;
-
-    return (
-      <TableRow
-        key={row.id}
-        data-state={row.getIsSelected() && "selected"}
-        {...props}
-      >
-        {row.getVisibleCells().map((cell) => (
-          <TableCell
-            key={cell.id}
-            style={{
-              //temp
-              maxWidth: cell.column.getSize(),
-              textOverflow: "ellipsis",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-          </TableCell>
-        ))}
-      </TableRow>
-    );
-  };
-
-function SortingIndicator({ isSorted }: { isSorted: SortDirection | false }) {
-  if (!isSorted) return null;
-  return (
-    <div>
-      {
-        {
-          asc: "↑",
-          desc: "↓",
-        }[isSorted]
-      }
-    </div>
-  );
+interface DataTableProps<TData> {
+  data: TData[];
+  columns: ColumnDef<TData>[];
 }
 
-type DataTableProps<TData, TValue> = {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  height: string;
-};
+export function DataTable<TData>({ data, columns }: DataTableProps<TData>) {
+  const [columnResizeMode] = React.useState<ColumnResizeMode>("onChange");
+  const [columnResizeDirection] = React.useState<ColumnResizeDirection>("ltr");
 
-export function DataTable<TData, TValue>({ columns, data, height }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
   const table = useReactTable({
     data,
     columns,
-    state: {
-      sorting,
-    },
-    onSortingChange: setSorting,
+    columnResizeMode,
+    columnResizeDirection,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    columnResizeMode: "onChange",
-    enableColumnResizing: true,
   });
 
   const { rows } = table.getRowModel();
 
+  const parentRef = React.useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 30,
+    overscan: 20,
+  });
+
   return (
-    <div className='rounded-md border'>
-      <TableVirtuoso
-        style={{ height }}
-        totalCount={rows.length}
-        components={{
-          Table: TableComponent,
-          TableRow: TableRowComponent(rows),
-        }}
-        fixedHeaderContent={() =>
-          table.getHeaderGroups().map((headerGroup) => (
-            <TableRow
-              className='bg-card hover:bg-muted'
-              key={headerGroup.id}
-            >
-              {headerGroup.headers.map((header) => {
+    <div className='p-0'>
+      <div
+        style={{ direction: table.options.columnResizeDirection }}
+        ref={parentRef}
+        className='overflow-auto h-[800px]'
+      >
+        <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
+          <table
+            {...{
+              style: {
+                width: table.getCenterTotalSize(),
+              },
+            }}
+          >
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th
+                      {...{
+                        key: header.id,
+                        colSpan: header.colSpan,
+                        style: {
+                          width: header.getSize(),
+                        },
+                      }}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                      <div
+                        {...{
+                          onDoubleClick: () => header.column.resetSize(),
+                          onMouseDown: header.getResizeHandler(),
+                          onTouchStart: header.getResizeHandler(),
+                          className: `resizer ${table.options.columnResizeDirection} ${
+                            header.column.getIsResizing() ? "isResizing" : ""
+                          }`,
+                          style: {
+                            transform:
+                              columnResizeMode === "onEnd" && header.column.getIsResizing()
+                                ? `translateX(${
+                                    (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
+                                    (table.getState().columnSizingInfo.deltaOffset ?? 0)
+                                  }px)`
+                                : "",
+                          },
+                        }}
+                      />
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {virtualizer.getVirtualItems().map((virtualRow, index) => {
+                const row = rows[virtualRow.index];
+
                 return (
-                  <TableHead
-                    key={header.id}
-                    colSpan={header.colSpan}
+                  <tr
+                    key={row.id}
                     style={{
-                      maxWidth: header.getSize(),
-                      minWidth: header.getSize(),
+                      height: `${virtualRow.size}px`,
+                      transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
                     }}
                   >
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className='flex items-center'
+                    {row.getVisibleCells().map((cell) => (
+                      <td
                         {...{
-                          style: header.column.getCanSort()
-                            ? {
-                                cursor: "pointer",
-                                userSelect: "none",
-                              }
-                            : {},
-                          onClick: header.column.getToggleSortingHandler(),
+                          key: cell.id,
+                          style: {
+                            width: cell.column.getSize(),
+                          },
                         }}
                       >
-                        {flexRender(header.column.columnDef.header, header.getContext())}
-                        <SortingIndicator isSorted={header.column.getIsSorted()} />
-                      </div>
-                    )}
-
-                    {/* {header.column.getCanResize() && (
-                      <div
-                        onMouseDown={header.getResizeHandler()}
-                        onTouchStart={header.getResizeHandler()}
-                        className={`absolute right-0 top-0 h-full w-2 cursor-col-resize ${
-                          header.column.getIsResizing() ? "bg-blue-500" : "hover:bg-gray-300"
-                        }`}
-                      />
-                    )} */}
-                  </TableHead>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    ))}
+                  </tr>
                 );
               })}
-            </TableRow>
-          ))
-        }
-      />
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

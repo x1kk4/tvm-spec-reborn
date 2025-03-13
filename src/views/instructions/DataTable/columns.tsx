@@ -31,7 +31,7 @@ export const columns: ColumnDef<TInstruction>[] = [
     header: "Description",
     size: 150,
     minSize: 100,
-    maxSize: 200,
+    maxSize: 500,
     enableResizing: true,
     cell: (info) => info.getValue() || "N/A",
   },
