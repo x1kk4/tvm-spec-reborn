@@ -14,6 +14,7 @@ import {
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shadcn/ui/table";
 import { cn } from "@/shadcn/utils";
+import styles from "./DataTable.module.css";
 
 type TDataTableProps<TData, TValue> = {
   data: TData[];
@@ -23,7 +24,7 @@ type TDataTableProps<TData, TValue> = {
 function SortingIndicator({ isSorted }: { isSorted: SortDirection | false }) {
   if (!isSorted) return null;
   return (
-    <div>
+    <div className={styles.sorting}>
       {
         {
           asc: "↑",
@@ -67,7 +68,7 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
     <div
       style={{ direction: table.options.columnResizeDirection }}
       ref={parentRef}
-      className='overflow-auto h-[800px]'
+      className={styles.root}
     >
       <Table
         containerStyle={{ height: `${virtualizer.getTotalSize()}px` }}
@@ -107,28 +108,30 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
                       <SortingIndicator isSorted={header.column.getIsSorted()} />
                     </div>
                   )}
-                  <div
-                    {...{
-                      onDoubleClick: () => header.column.resetSize(),
-                      onMouseDown: header.getResizeHandler(),
-                      onTouchStart: header.getResizeHandler(),
-                      className: cn(
-                        "absolute top-0 h-full w-[5px] bg-black/50 cursor-col-resize select-none touch-none",
-                        table.options.columnResizeDirection === "rtl" ? "left-0" : "right-0",
-                        header.column.getIsResizing() && "bg-blue-500 opacity-100",
-                        "opacity-0 hover:opacity-100"
-                      ),
-                      style: {
-                        transform:
-                          columnResizeMode === "onEnd" && header.column.getIsResizing()
-                            ? `translateX(${
-                                (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
-                                (table.getState().columnSizingInfo.deltaOffset ?? 0)
-                              }px)`
-                            : "",
-                      },
-                    }}
-                  />
+                  {header.column.getCanResize() && (
+                    <div
+                      {...{
+                        onDoubleClick: () => header.column.resetSize(),
+                        onMouseDown: header.getResizeHandler(),
+                        onTouchStart: header.getResizeHandler(),
+                        className: cn(
+                          "absolute top-0 h-full w-[5px] bg-black/50 cursor-col-resize select-none touch-none",
+                          table.options.columnResizeDirection === "rtl" ? "left-0" : "right-0",
+                          header.column.getIsResizing() && "bg-blue-500 opacity-100",
+                          "opacity-0 hover:opacity-100"
+                        ),
+                        style: {
+                          transform:
+                            columnResizeMode === "onEnd" && header.column.getIsResizing()
+                              ? `translateX(${
+                                  (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
+                                  (table.getState().columnSizingInfo.deltaOffset ?? 0)
+                                }px)`
+                              : "",
+                        },
+                      }}
+                    />
+                  )}
                 </TableHead>
               ))}
             </TableRow>
