@@ -1,4 +1,4 @@
-import React from "react";
+import { useState, useRef } from "react";
 
 import {
   useReactTable,
@@ -7,31 +7,54 @@ import {
   ColumnDef,
   flexRender,
   ColumnResizeDirection,
+  SortDirection,
+  SortingState,
+  getSortedRowModel,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shadcn/ui/table";
 import { cn } from "@/shadcn/utils";
 
-interface DataTableProps<TData, TValue> {
+type TDataTableProps<TData, TValue> = {
   data: TData[];
   columns: ColumnDef<TData, TValue>[];
+};
+
+function SortingIndicator({ isSorted }: { isSorted: SortDirection | false }) {
+  if (!isSorted) return null;
+  return (
+    <div>
+      {
+        {
+          asc: "↑",
+          desc: "↓",
+        }[isSorted]
+      }
+    </div>
+  );
 }
 
-export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData, TValue>) {
-  const [columnResizeMode] = React.useState<ColumnResizeMode>("onChange");
-  const [columnResizeDirection] = React.useState<ColumnResizeDirection>("ltr");
+export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TData, TValue>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
+  const [columnResizeDirection] = useState<ColumnResizeDirection>("ltr");
 
   const table = useReactTable({
     data,
     columns,
+    state: {
+      sorting,
+    },
     columnResizeMode,
     columnResizeDirection,
+    onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
   });
 
   const { rows } = table.getRowModel();
 
-  const parentRef = React.useRef<HTMLDivElement>(null);
+  const parentRef = useRef<HTMLDivElement>(null);
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -67,7 +90,23 @@ export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData
                     },
                   }}
                 >
-                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  {header.isPlaceholder ? null : (
+                    <div
+                      className='flex items-center'
+                      {...{
+                        style: header.column.getCanSort()
+                          ? {
+                              cursor: "pointer",
+                              userSelect: "none",
+                            }
+                          : {},
+                        onClick: header.column.getToggleSortingHandler(),
+                      }}
+                    >
+                      {flexRender(header.column.columnDef.header, header.getContext())}
+                      <SortingIndicator isSorted={header.column.getIsSorted()} />
+                    </div>
+                  )}
                   <div
                     {...{
                       onDoubleClick: () => header.column.resetSize(),
