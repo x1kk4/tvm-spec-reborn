@@ -1,4 +1,6 @@
-export const shortInstructions = [
+import { TInstruction } from "../types";
+
+export const shortInstructions: TInstruction[] = [
   {
     mnemonic: "NOP",
     since_version: 0,

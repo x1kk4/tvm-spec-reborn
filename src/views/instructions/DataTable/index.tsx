@@ -1,5 +1,4 @@
 import React from "react";
-import "./temp.css";
 
 import {
   useReactTable,
@@ -10,13 +9,15 @@ import {
   ColumnResizeDirection,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shadcn/ui/table";
+import { cn } from "@/shadcn/utils";
 
-interface DataTableProps<TData> {
+interface DataTableProps<TData, TValue> {
   data: TData[];
-  columns: ColumnDef<TData>[];
+  columns: ColumnDef<TData, TValue>[];
 }
 
-export function DataTable<TData>({ data, columns }: DataTableProps<TData>) {
+export function DataTable<TData, TValue>({ data, columns }: DataTableProps<TData, TValue>) {
   const [columnResizeMode] = React.useState<ColumnResizeMode>("onChange");
   const [columnResizeDirection] = React.useState<ColumnResizeDirection>("ltr");
 
@@ -40,89 +41,89 @@ export function DataTable<TData>({ data, columns }: DataTableProps<TData>) {
   });
 
   return (
-    <div className='p-0'>
-      <div
-        style={{ direction: table.options.columnResizeDirection }}
-        ref={parentRef}
-        className='overflow-auto h-[800px]'
+    <div
+      style={{ direction: table.options.columnResizeDirection }}
+      ref={parentRef}
+      className='overflow-auto h-[800px]'
+    >
+      <Table
+        containerStyle={{ height: `${virtualizer.getTotalSize()}px` }}
+        {...{
+          style: {
+            width: table.getCenterTotalSize(),
+          },
+        }}
       >
-        <div style={{ height: `${virtualizer.getTotalSize()}px` }}>
-          <table
-            {...{
-              style: {
-                width: table.getCenterTotalSize(),
-              },
-            }}
-          >
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      {...{
-                        key: header.id,
-                        colSpan: header.colSpan,
-                        style: {
-                          width: header.getSize(),
-                        },
-                      }}
-                    >
-                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                      <div
-                        {...{
-                          onDoubleClick: () => header.column.resetSize(),
-                          onMouseDown: header.getResizeHandler(),
-                          onTouchStart: header.getResizeHandler(),
-                          className: `resizer ${table.options.columnResizeDirection} ${
-                            header.column.getIsResizing() ? "isResizing" : ""
-                          }`,
-                          style: {
-                            transform:
-                              columnResizeMode === "onEnd" && header.column.getIsResizing()
-                                ? `translateX(${
-                                    (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
-                                    (table.getState().columnSizingInfo.deltaOffset ?? 0)
-                                  }px)`
-                                : "",
-                          },
-                        }}
-                      />
-                    </th>
-                  ))}
-                </tr>
+        <TableHeader>
+          {table.getHeaderGroups().map((headerGroup) => (
+            <TableRow key={headerGroup.id}>
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  {...{
+                    key: header.id,
+                    colSpan: header.colSpan,
+                    style: {
+                      width: header.getSize(),
+                    },
+                  }}
+                >
+                  {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                  <div
+                    {...{
+                      onDoubleClick: () => header.column.resetSize(),
+                      onMouseDown: header.getResizeHandler(),
+                      onTouchStart: header.getResizeHandler(),
+                      className: cn(
+                        "absolute top-0 h-full w-[5px] bg-black/50 cursor-col-resize select-none touch-none",
+                        table.options.columnResizeDirection === "rtl" ? "left-0" : "right-0",
+                        header.column.getIsResizing() && "bg-blue-500 opacity-100",
+                        "opacity-0 hover:opacity-100"
+                      ),
+                      style: {
+                        transform:
+                          columnResizeMode === "onEnd" && header.column.getIsResizing()
+                            ? `translateX(${
+                                (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
+                                (table.getState().columnSizingInfo.deltaOffset ?? 0)
+                              }px)`
+                            : "",
+                      },
+                    }}
+                  />
+                </TableHead>
               ))}
-            </thead>
-            <tbody>
-              {virtualizer.getVirtualItems().map((virtualRow, index) => {
-                const row = rows[virtualRow.index];
+            </TableRow>
+          ))}
+        </TableHeader>
+        <TableBody>
+          {virtualizer.getVirtualItems().map((virtualRow, index) => {
+            const row = rows[virtualRow.index];
 
-                return (
-                  <tr
-                    key={row.id}
-                    style={{
-                      height: `${virtualRow.size}px`,
-                      transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
+            return (
+              <TableRow
+                key={row.id}
+                style={{
+                  height: `${virtualRow.size}px`,
+                  transform: `translateY(${virtualRow.start - index * virtualRow.size}px)`,
+                }}
+              >
+                {row.getVisibleCells().map((cell) => (
+                  <TableCell
+                    {...{
+                      key: cell.id,
+                      style: {
+                        width: cell.column.getSize(),
+                      },
                     }}
                   >
-                    {row.getVisibleCells().map((cell) => (
-                      <td
-                        {...{
-                          key: cell.id,
-                          style: {
-                            width: cell.column.getSize(),
-                          },
-                        }}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </td>
-                    ))}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                  </TableCell>
+                ))}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
     </div>
   );
 }
