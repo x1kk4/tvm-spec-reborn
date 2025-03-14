@@ -8,3 +8,28 @@
 .sorting {
   margin-left: 4px;
 }
+
+.header {
+  /* position: sticky; */
+  /* top: -16px; */
+  background-color: lightblue;
+  /* z-index: 100; */
+}
+
+.cell {
+  white-space: pre;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+}
+
+.tooltip {
+  white-space: pre;
+  border-radius: 0;
+  font-size: 14px;
+  font-weight: 20px;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  /* max-width: 500px; */
+}

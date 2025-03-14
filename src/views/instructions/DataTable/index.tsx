@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, ReactNode } from "react";
 
 import {
   useReactTable,
@@ -15,6 +15,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shadcn/ui/table";
 import { cn } from "@/shadcn/utils";
 import styles from "./DataTable.module.css";
+import { Tooltip, TooltipContent, TooltipProvider } from "@/shadcn/ui/tooltip";
 
 type TDataTableProps<TData, TValue> = {
   data: TData[];
@@ -39,6 +40,14 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
   const [columnResizeDirection] = useState<ColumnResizeDirection>("ltr");
+
+  const [hoveredCell, setHoveredCell] = useState<{
+    id: string;
+    rect: DOMRect;
+    node: ReactNode;
+    height: number;
+    width: number;
+  } | null>(null);
 
   const table = useReactTable({
     data,
@@ -78,7 +87,7 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
           },
         }}
       >
-        <TableHeader>
+        <TableHeader className={styles.header}>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -151,12 +160,23 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
-                    {...{
-                      key: cell.id,
-                      style: {
-                        width: cell.column.getSize(),
-                      },
+                    key={cell.id}
+                    className={styles.cell}
+                    style={{
+                      width: cell.column.getSize(),
+                      maxWidth: cell.column.getSize(),
                     }}
+                    onMouseEnter={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setHoveredCell({
+                        id: cell.id,
+                        rect,
+                        node: flexRender(cell.column.columnDef.cell, cell.getContext()),
+                        height: rect.height,
+                        width: rect.width,
+                      });
+                    }}
+                    onMouseLeave={() => setHoveredCell(null)}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
@@ -165,6 +185,26 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
             );
           })}
         </TableBody>
+        {hoveredCell && (
+          <TooltipProvider>
+            <Tooltip open={!!hoveredCell}>
+              <TooltipContent
+                align='start'
+                className={styles.tooltip}
+                style={{
+                  position: "fixed",
+                  top: hoveredCell.rect.bottom + window.scrollY - hoveredCell.height,
+                  left: hoveredCell.rect.left + window.scrollX,
+                  pointerEvents: "none",
+                  height: hoveredCell.height,
+                  minWidth: hoveredCell.width,
+                }}
+              >
+                {hoveredCell.node}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
       </Table>
     </div>
   );
