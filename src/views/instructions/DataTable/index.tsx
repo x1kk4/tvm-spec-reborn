@@ -92,8 +92,8 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
             <TableRow key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
                 <TableHead
+                  key={header.id}
                   {...{
-                    key: header.id,
                     colSpan: header.colSpan,
                     style: {
                       width: header.getSize(),
@@ -193,11 +193,12 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
                 className={styles.tooltip}
                 style={{
                   position: "fixed",
-                  top: hoveredCell.rect.bottom + window.scrollY - hoveredCell.height,
-                  left: hoveredCell.rect.left + window.scrollX,
+                  top: hoveredCell.rect.bottom - hoveredCell.height,
+                  left: hoveredCell.rect.left,
                   pointerEvents: "none",
-                  height: hoveredCell.height,
+                  minHeight: hoveredCell.height,
                   minWidth: hoveredCell.width,
+                  maxWidth: hoveredCell.width * 1.5,
                 }}
               >
                 {hoveredCell.node}

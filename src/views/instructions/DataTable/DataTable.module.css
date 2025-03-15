@@ -10,10 +10,7 @@
 }
 
 .header {
-  /* position: sticky; */
-  /* top: -16px; */
   background-color: lightblue;
-  /* z-index: 100; */
 }
 
 .cell {
@@ -24,12 +21,12 @@
 }
 
 .tooltip {
-  white-space: pre;
+  white-space: pre-wrap;
   border-radius: 0;
   font-size: 14px;
   font-weight: 20px;
   padding: 8px;
   display: flex;
   align-items: center;
-  /* max-width: 500px; */
+  width: max-content;
 }
