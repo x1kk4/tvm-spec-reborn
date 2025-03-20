@@ -14,6 +14,7 @@ export const columns: ColumnDef<TInstruction>[] = [
     maxSize: 250,
     enableResizing: true,
     cell: (info) => info.getValue(),
+    enableHiding: false,
   },
   {
     accessorFn: (row) => row.doc.category,
@@ -95,4 +96,4 @@ export const columns: ColumnDef<TInstruction>[] = [
     enableResizing: true,
     cell: (info) => info.getValue() || "N/A",
   },
-];
+] as const;

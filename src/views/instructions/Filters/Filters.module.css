@@ -1,0 +1,13 @@
+.root {
+  display: flex;
+  height: 36px;
+  gap: 4px;
+}
+
+.button {
+  cursor: pointer;
+}
+
+.checkbox {
+  pointer-events: none;
+}
