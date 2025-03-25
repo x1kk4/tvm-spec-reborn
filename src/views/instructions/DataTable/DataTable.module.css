@@ -23,10 +23,6 @@ html {
   max-width: calc(100vw - 32px);
 }
 
-.sorting {
-  margin-left: 4px;
-}
-
 .header {
   background-color: aquamarine;
 }
