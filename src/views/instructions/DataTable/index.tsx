@@ -7,7 +7,6 @@ import {
   ColumnDef,
   flexRender,
   ColumnResizeDirection,
-  SortDirection,
   SortingState,
   getSortedRowModel,
 } from "@tanstack/react-table";
@@ -17,25 +16,13 @@ import { cn } from "@/shadcn/utils";
 import styles from "./DataTable.module.css";
 import { Tooltip, TooltipContent, TooltipProvider } from "@/shadcn/ui/tooltip";
 import { Filters } from "../Filters";
+import { SortingIndicator } from "./SortIndicator";
+// import { Search } from "../Search";
 
 type TDataTableProps<TData, TValue> = {
   data: TData[];
   columns: ColumnDef<TData, TValue>[];
 };
-
-function SortingIndicator({ isSorted }: { isSorted: SortDirection | false }) {
-  if (!isSorted) return null;
-  return (
-    <div className={styles.sorting}>
-      {
-        {
-          asc: "↑",
-          desc: "↓",
-        }[isSorted]
-      }
-    </div>
-  );
-}
 
 export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -90,6 +77,7 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
   return (
     <div className={styles.root}>
       <div className={styles.controls}>
+        {/* <Search /> */}
         <Filters table={table} />
       </div>
       <div
