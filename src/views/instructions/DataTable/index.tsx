@@ -2,12 +2,9 @@ import { useState, useRef, ReactNode } from "react";
 
 import {
   useReactTable,
-  ColumnResizeMode,
   getCoreRowModel,
   ColumnDef,
   flexRender,
-  ColumnResizeDirection,
-  SortingState,
   getSortedRowModel,
   getFilteredRowModel,
 } from "@tanstack/react-table";
@@ -19,6 +16,8 @@ import { Tooltip, TooltipContent, TooltipProvider } from "@/shadcn/ui/tooltip";
 import { ColumnFilters } from "./Filters/ColumnFilters";
 import { SortingIndicator } from "./SortIndicator";
 import { SearchFilter } from "./Filters/SearchFilter";
+import { globalFilterFn } from "./Filters/SearchFilter/globalFilterFn";
+import { defaultColumnsVisibility } from "./columns";
 
 type TDataTableProps<TData, TValue> = {
   data: TData[];
@@ -26,10 +25,6 @@ type TDataTableProps<TData, TValue> = {
 };
 
 export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
-  const [columnResizeDirection] = useState<ColumnResizeDirection>("ltr");
-
   const [searchFilter, setSearchFilter] = useState<string>("");
 
   const [hoveredCell, setHoveredCell] = useState<{
@@ -44,25 +39,15 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
     data,
     columns,
     state: {
-      sorting,
       globalFilter: searchFilter,
     },
     initialState: {
-      columnVisibility: {
-        mnemonic: true,
-        category: true,
-        description: true,
-        gas: true,
-        opcode: true,
-        stack: true,
-        fift: true,
-        tlb: true,
-        prefix: true,
-      },
+      columnVisibility: defaultColumnsVisibility,
+      sorting: [],
     },
-    columnResizeMode,
-    columnResizeDirection,
-    onSortingChange: setSorting,
+    globalFilterFn,
+    columnResizeMode: "onChange",
+    columnResizeDirection: "ltr",
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -145,7 +130,7 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
                           ),
                           style: {
                             transform:
-                              columnResizeMode === "onEnd" && header.column.getIsResizing()
+                              table.options.columnResizeMode === "onEnd" && header.column.getIsResizing()
                                 ? `translateX(${
                                     (table.options.columnResizeDirection === "rtl" ? -1 : 1) *
                                     (table.getState().columnSizingInfo.deltaOffset ?? 0)

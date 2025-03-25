@@ -1,7 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
-import { TInstruction } from "../types";
+import { TColumns, TInstruction } from "../types";
 import { categoryMapping } from "./mapping";
 
 export const columns: ColumnDef<TInstruction>[] = [
@@ -97,3 +97,15 @@ export const columns: ColumnDef<TInstruction>[] = [
     cell: (info) => info.getValue() || "N/A",
   },
 ] as const;
+
+export const defaultColumnsVisibility: Record<TColumns, boolean> = {
+  mnemonic: true,
+  category: true,
+  description: true,
+  gas: true,
+  opcode: true,
+  stack: true,
+  fift: true,
+  tlb: true,
+  prefix: true,
+};

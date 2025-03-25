@@ -93,3 +93,5 @@ export type TInstructionsData = {
   instructions: TInstruction[];
   aliases: TAlias[];
 };
+
+export type TColumns = "mnemonic" | "category" | "description" | "gas" | "opcode" | "stack" | "fift" | "tlb" | "prefix";
