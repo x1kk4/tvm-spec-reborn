@@ -16,7 +16,7 @@ const Filters = <TData,>({ table }: TFiltersProps<TData>) => {
           key={column.id}
           disabled={!column.getCanHide()}
           onClick={() => column.toggleVisibility()}
-          variant={column.getIsVisible() ? "default" : "outline"}
+          variant={column.getIsVisible() ? "default" : "secondary"}
         >
           {column.columnDef.header as string}
         </Button>
