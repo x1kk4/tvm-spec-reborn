@@ -1,13 +1,13 @@
 import { Button } from "@/shadcn/ui/button";
 
-import styles from "./Filters.module.css";
+import styles from "./ColumnFilters.module.css";
 import { Table } from "@tanstack/react-table";
 
-type TFiltersProps<T> = {
+type TColumnFiltersProps<T> = {
   table: Table<T>;
 };
 
-const Filters = <TData,>({ table }: TFiltersProps<TData>) => {
+const ColumnFilters = <TData,>({ table }: TColumnFiltersProps<TData>) => {
   return (
     <div className={styles.root}>
       {table.getAllColumns().map((column) => (
@@ -25,4 +25,4 @@ const Filters = <TData,>({ table }: TFiltersProps<TData>) => {
   );
 };
 
-export { Filters };
+export { ColumnFilters };

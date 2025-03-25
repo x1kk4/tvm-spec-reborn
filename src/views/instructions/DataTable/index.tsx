@@ -9,15 +9,16 @@ import {
   ColumnResizeDirection,
   SortingState,
   getSortedRowModel,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shadcn/ui/table";
 import { cn } from "@/shadcn/utils";
 import styles from "./DataTable.module.css";
 import { Tooltip, TooltipContent, TooltipProvider } from "@/shadcn/ui/tooltip";
-import { Filters } from "../Filters";
+import { ColumnFilters } from "./Filters/ColumnFilters";
 import { SortingIndicator } from "./SortIndicator";
-// import { Search } from "../Search";
+import { SearchFilter } from "./Filters/SearchFilter";
 
 type TDataTableProps<TData, TValue> = {
   data: TData[];
@@ -28,6 +29,8 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnResizeMode] = useState<ColumnResizeMode>("onChange");
   const [columnResizeDirection] = useState<ColumnResizeDirection>("ltr");
+
+  const [searchFilter, setSearchFilter] = useState<string>("");
 
   const [hoveredCell, setHoveredCell] = useState<{
     id: string;
@@ -42,6 +45,7 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
     columns,
     state: {
       sorting,
+      globalFilter: searchFilter,
     },
     initialState: {
       columnVisibility: {
@@ -61,6 +65,7 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   const { rows } = table.getRowModel();
@@ -77,8 +82,11 @@ export function DataTable<TData, TValue>({ data, columns }: TDataTableProps<TDat
   return (
     <div className={styles.root}>
       <div className={styles.controls}>
-        {/* <Search /> */}
-        <Filters table={table} />
+        <SearchFilter
+          searchFilter={searchFilter}
+          setSearchFilter={setSearchFilter}
+        />
+        <ColumnFilters table={table} />
       </div>
       <div
         style={{ direction: table.options.columnResizeDirection }}
